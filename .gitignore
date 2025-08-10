@@ -1,0 +1,23 @@
+# Логи и временные файлы
+*.log
+*.tmp
+
+# Зависимости
+node_modules/
+vendor/
+.venv/
+.ipynb_checkpoints/
+.idea/
+.vscode/
+DS_Store
+Train_filter/roberta-clf_v3/checkpoint-*/
+__pycache__
+Train_filter/
+
+# Сборки
+dist/
+build/
+
+# Конфиги и секреты
+.env
+*.key
