@@ -4,6 +4,7 @@
 ![Telegram](https://img.shields.io/badge/Telegram-Bot_API-26A5E4?style=flat&logo=telegram&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-412991?style=flat&logo=openai&logoColor=white)
 ![Hugging Face](https://img.shields.io/badge/Hugging%20Face-API-FF9D00?style=flat&logo=huggingface&logoColor=white)
+
 Бот для Telegram, который генерирует резюме из текста или PDF-файлов, фильтрует мусорные сообщения и конвертирует результаты в PDF с использованием модели `xlm-roberta-base`.
 
 ## Описание
