@@ -5,7 +5,6 @@ from pathlib import Path
 
 class PDF(FPDF):
     def header(self):
-        current_file_dir = Path(__file__).parent
         self.image("Fonts/bg.png", x=0, y=0, w=595, h=842)
         pass
 
@@ -28,7 +27,6 @@ class ResumeParser:
         """
         Улучшенный парсер AI респонса
         """
-        # Разделяем по ---
         sections = response_text.split('---')
         parsed_data = {}
 
@@ -41,16 +39,12 @@ class ResumeParser:
             if not lines:
                 continue
 
-            # Первая строка - заголовок секции
             title = lines[0].strip()
 
-            # Остальное - содержимое
             content_lines = lines[1:]
             content = '\n'.join(line.rstrip() for line in content_lines).strip()
 
-            # Специальная обработка для секции "Опыт работы"
             if title == "Опыт работы":
-                # Находим все подсекции с названиями компаний
                 work_sections = []
                 current_company = None
                 current_content = []
@@ -62,8 +56,6 @@ class ResumeParser:
                             current_content.append('')
                         continue
 
-                    # Проверяем, начинается ли строка с названия компании и периода
-                    # Например: "Вайлдберриз, ООО - Сентябрь 2023 - настоящее время"
                     if (' - ' in line and
                             ('настоящее время' in line or
                              any(month in line for month in ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
@@ -71,29 +63,25 @@ class ResumeParser:
                                                              'Декабрь']) or
                              any(year in line for year in ['2020', '2021', '2022', '2023', '2024', '2025']))):
 
-                        # Сохраняем предыдущую секцию
                         if current_company:
                             work_sections.append(f"{current_company}\n{chr(10).join(current_content)}")
 
-                        # Начинаем новую секцию
                         current_company = line
                         current_content = []
                     else:
-                        # Это часть описания текущей компании
                         current_content.append(line)
 
-                # Добавляем последнюю секцию
+
                 if current_company:
                     work_sections.append(f"{current_company}\n{chr(10).join(current_content)}")
 
-                # Объединяем все секции
                 if work_sections:
-                    # Добавляем общий стаж в начало, если он есть
+
                     work_content = []
                     first_line = content_lines[0].strip() if content_lines else ""
                     if "Общий стаж:" in first_line:
                         work_content.append(first_line)
-                        work_content.append("")  # Пустая строка после общего стажа
+                        work_content.append("")
 
                     work_content.extend(work_sections)
                     content = '\n\n'.join(work_content)
@@ -145,9 +133,9 @@ class ResumeParser:
                 formatted_lines.append('')
                 continue
 
-            # Если строка не начинается с • - это новое место работы или заголовок
+
             if not line.strip().startswith('•'):
-                # Добавляем пустую строку перед новым местом работы (кроме самого первого)
+
                 if formatted_lines and formatted_lines[-1] != '' and i > 0:
                     formatted_lines.append('')
                 formatted_lines.append(line.strip())
@@ -180,14 +168,12 @@ def create_resume_from_ai_response(ai_response, output_filename="generated_resum
     for key, value in parsed_data.items():
         parsed_data[key] = clean_text_for_pdf(value)
 
-    # Создаем PDF
     pdf = PDF('P', 'pt', 'A4')
     pdf.add_page()
 
     pdf.add_font('Roboto', '', 'Fonts/Roboto-Regular.ttf', uni=True)
     pdf.add_font('Roboto', 'B', 'Fonts/Roboto-Bold.ttf', uni=True)
 
-    # Параметры макета
     page_width = 595
     margin_left = 20
     margin_right = 30
@@ -231,7 +217,7 @@ def create_resume_from_ai_response(ai_response, output_filename="generated_resum
 
     for section_name in right_column_sections:
         if section_name in parsed_data:
-            # Заголовок секции
+
             current_y_right = pdf.add_section_text(
                 right_column_x, current_y_right, right_column_width,
                 section_name,
@@ -243,7 +229,7 @@ def create_resume_from_ai_response(ai_response, output_filename="generated_resum
             if section_name == "Опыт работы":
                 content = parser.format_work_experience(content)
 
-            # Убираем маркеры форматирования
+
             content = content.replace('**', '').replace('*', '')
 
             lines = content.split('\n')
@@ -255,14 +241,14 @@ def create_resume_from_ai_response(ai_response, output_filename="generated_resum
                     current_y_right += 5
                     continue
 
-                # Определяем, является ли строка заголовком
+
                 is_header = False
                 if i == 0:
                     is_header = True
                 elif i > 0 and not lines[i - 1].strip():
                     is_header = True
                 elif not line_stripped.startswith('•') and not line_stripped.startswith('-'):
-                    # Проверяем, содержит ли строка название компании и даты
+
                     if (' - ' in line_stripped and
                             ('настоящее время' in line_stripped or
                              any(month in line_stripped for month in

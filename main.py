@@ -12,12 +12,10 @@ from run_model import predict, model_predict
 import re
 from parse_pdf import extract_pdf
 
-# Загружаем переменные из .env
 load_dotenv()
 telegram_token = os.getenv("TELEGRAM_TOKEN")
 
 
-# 🔹 Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
         "Привет! Я помогу создать тебе резюме!\nДля более точного составление укажи:\n"
@@ -26,6 +24,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик сообщений из бота
+            Args:
+                update сообщение от пользователя
+
+            Returns:
+                отправляет документ пользователю
+
+                """
     user_prompt = update.message.text
     user_doc = update.message.document
     state = False
@@ -39,10 +45,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             os.remove(file_path)
     model, tokenizer = model_predict()
 
-    # Регулярное выражение для удаления ссылок
     pattern = r'https?://[^\s<>"]+|www\.[^\s<>"]+|[^\s<>"]+\.[a-zA-Z]{2,}(?:/[^\s<>"]*)?'
 
-    # Функция для удаления ссылок из текста
     def remove_urls(text):
         return re.sub(pattern, '', text)
 
@@ -57,13 +61,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
     try:
         response = await call_openai(user_prompt, state)
-        # Временно получаем результат и проверяем что возвращается
+
         result = create_resume_from_ai_response(response)
 
-        # Если возвращается кортеж из 2 элементов
         pdf_buffer, parsed_sections = result
 
-        # Отправляем PDF
         await update.message.reply_document(
             document=pdf_buffer,
             filename="resume.pdf",
@@ -74,29 +76,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Произошла ошибка, попробуйте позже! {e}")
         return
 
-
-
-
-    # 🔹 Обработка нажатия кнопки
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
-    await query.answer()  # Обязательно: подтверждаем нажатие
+    await query.answer()
     await query.edit_message_text("Ты нажал кнопку ✅")
 
-# 🔹 Основная функция запуска бота
+
 async def main() -> None:
-    # Создаём приложение
+
     app = Application.builder().token(telegram_token).build()
 
-    # Добавляем обработчики
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT | filters.Document.PDF & ~filters.COMMAND, handle_message))
 
-    # Запуск бота
+
     print("Бот запущен...")
     await app.run_polling()
 
-# 🔹 Точка входа
+
 if __name__ == "__main__":
     import asyncio
     import sys
